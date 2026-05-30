@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clawid"
+version = "0.1.0"
+description = "ClawID — Agent KYC. Verify autonomous AI agent credentials in three lines."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Project Black Box LLC", email = "hello@holdtheleash.id" },
+]
+keywords = ["agent", "kyc", "identity", "ai", "verification", "passkey", "trust"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  # Single-process verify path needs an HTTP client for JWKS + the revocation
+  # check, and a JWS implementation that supports EdDSA. We pin minimums and
+  # leave the ceiling open so downstream apps can dedupe their own pins.
+  "httpx>=0.27",
+  "pyjwt[crypto]>=2.8",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+]
+
+[project.urls]
+Homepage = "https://holdtheleash.id"
+Source = "https://github.com/projectblackboxllc/claw-sdk-python"
+Issues = "https://github.com/projectblackboxllc/claw-sdk-python/issues"
+Documentation = "https://github.com/projectblackboxllc/claw-sdk-python#readme"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clawid"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

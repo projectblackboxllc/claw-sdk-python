@@ -1,0 +1,30 @@
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local secrets — should never exist in this repo (verify-only SDK), but
+# belt-and-suspenders against an accidental drop.
+.env
+.env.*
+keys/
+*.pem
