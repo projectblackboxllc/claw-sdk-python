@@ -3,8 +3,8 @@ requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
 [project]
-name = "clawid"
-version = "0.2.0"
+name = "clawid-sdk"
+version = "0.3.0"
 description = "ClawID — Agent KYC. Verify autonomous AI agent credentials in three lines."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,7 +40,7 @@ test = [
 ]
 
 [project.scripts]
-clawid = "clawid.__main__:main"
+clawid = "clawid_sdk.__main__:main"
 
 [project.urls]
 Homepage = "https://holdtheleash.id"
@@ -49,7 +49,7 @@ Issues = "https://github.com/projectblackboxllc/claw-sdk-python/issues"
 Documentation = "https://github.com/projectblackboxllc/claw-sdk-python#readme"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/clawid"]
+packages = ["src/clawid_sdk"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

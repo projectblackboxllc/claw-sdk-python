@@ -12,7 +12,7 @@ This module verifies that property end-to-end from the file alone. It
 needs nothing from the hub — no API call, no key, no account. Standard
 library only (hashlib + json).
 
-    >>> from clawid import verify_receipts
+    >>> from clawid_sdk import verify_receipts
     >>> r = verify_receipts("receipts.jsonl")
     >>> if r.ok:
     ...     print("verified", r.rows_checked, "rows")

@@ -1,4 +1,4 @@
-"""Module-level conveniences — `clawid.verify(token)` and `clawid.verify_async(token)`.
+"""Module-level conveniences — `clawid_sdk.verify(token)` and `clawid_sdk.verify_async(token)`.
 
 These wrap a process-wide default `Claw` client pointed at the production
 hub. Use them for the common case; instantiate `Claw(...)` explicitly
@@ -28,8 +28,8 @@ def _client() -> Claw:
 def verify(token: str, *, mode: str = "online") -> VerifyResult:
     """Verify a Claw against the default hub.
 
-    >>> import clawid
-    >>> result = clawid.verify(token)
+    >>> import clawid_sdk
+    >>> result = clawid_sdk.verify(token)
     >>> if result.valid:
     ...     print(result.agent_id, "owned by", result.tenant_id)
 

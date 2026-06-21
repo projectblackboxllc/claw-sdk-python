@@ -2,22 +2,22 @@
   <img src="https://holdtheleash.id/crab-claw-mark.png" width="120" alt="ClawID" />
 </p>
 
-<h1 align="center">clawid</h1>
+<h1 align="center">clawid-sdk</h1>
 
 <p align="center"><strong>Agent KYC. Verify autonomous AI agent credentials in three lines.</strong></p>
 
 <p align="center">
-  <a href="https://pypi.org/project/clawid/"><img src="https://img.shields.io/pypi/v/clawid.svg" alt="PyPI" /></a>
+  <a href="https://pypi.org/project/clawid-sdk/"><img src="https://img.shields.io/pypi/v/clawid-sdk.svg" alt="PyPI" /></a>
   <a href="https://github.com/projectblackboxllc/claw-sdk-python/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
-  <a href="https://pypi.org/project/clawid/"><img src="https://img.shields.io/pypi/pyversions/clawid.svg" alt="Python versions" /></a>
+  <a href="https://pypi.org/project/clawid-sdk/"><img src="https://img.shields.io/pypi/pyversions/clawid-sdk.svg" alt="Python versions" /></a>
 </p>
 
 ---
 
 ```python
-import clawid
+import clawid_sdk_sdk
 
-result = clawid.verify(token)
+result = clawid_sdk.verify(token)
 if result.valid:
     print(result.agent_id, "owned by", result.tenant_id)
 ```
@@ -43,7 +43,7 @@ One round-trip, four answers. Free forever for verifiers.
 ## Install
 
 ```bash
-pip install clawid
+pip install clawid-sdk
 ```
 
 Python 3.10+. Two dependencies: [`httpx`](https://www.python-httpx.org/) and [`pyjwt[crypto]`](https://pyjwt.readthedocs.io/).
@@ -53,9 +53,9 @@ Python 3.10+. Two dependencies: [`httpx`](https://www.python-httpx.org/) and [`p
 ### The common case
 
 ```python
-import clawid
+import clawid_sdk
 
-result = clawid.verify(token)
+result = clawid_sdk.verify(token)
 
 if not result.valid:
     return reject(result.status, result.reason)
@@ -68,7 +68,7 @@ print(f"Leash: {result.leash}")
 ### When you want to configure things
 
 ```python
-from clawid import Claw
+from clawid_sdk import Claw
 
 claw = Claw(
     hub_url="https://api.holdtheleash.id",   # defaults to this
@@ -82,13 +82,13 @@ result = claw.verify(token)
 ### Async
 
 ```python
-result = await clawid.verify_async(token)
+result = await clawid_sdk.verify_async(token)
 ```
 
 ### Offline mode (signature + expiry only, no live revocation check)
 
 ```python
-result = clawid.verify(token, mode="offline")
+result = clawid_sdk.verify(token, mode="offline")
 ```
 
 Use when latency matters more than catching a revoke within ~30s. The signature check
@@ -102,7 +102,7 @@ The SDK is framework-agnostic by design. A FastAPI middleware looks like:
 ```python
 from fastapi import FastAPI, HTTPException, Request, Depends
 
-import clawid
+import clawid_sdk
 
 app = FastAPI()
 
@@ -111,7 +111,7 @@ def claw_required(request: Request) -> clawid.VerifyResult:
     token = auth.removeprefix("Bearer ").strip()
     if not token:
         raise HTTPException(401, "missing Claw")
-    result = clawid.verify(token)
+    result = clawid_sdk.verify(token)
     if not result.valid:
         raise HTTPException(401, f"{result.status.value}: {result.reason}")
     return result
@@ -173,7 +173,7 @@ refuse the request if `amount > leash["spend_ceiling"]` before doing any expensi
 ## How the verify path works
 
 ```
-                        clawid.verify(token)
+                        clawid_sdk.verify(token)
                                 │
               ┌─────────────────┴─────────────────┐
               ▼                                   ▼
@@ -203,11 +203,11 @@ malformed). Verification failures — bad signature, expired, revoked — never 
 return a `VerifyResult` with `valid=False` and a `status` that describes what happened.
 
 ```python
-import clawid
+import clawid_sdk
 
 try:
-    result = clawid.verify(token)
-except clawid.ClawError as e:
+    result = clawid_sdk.verify(token)
+except clawid_sdk.ClawError as e:
     # Hub is down or JWKS is unreachable. Decide based on your trust posture
     # — typically: fail closed.
     return reject_with_503(str(e))
@@ -220,7 +220,7 @@ if not result.valid:
 ## Vendor onboarding
 
 Verification is permissionless. You don't need a key, an account, or a contract to call
-`clawid.verify(...)`. **It's free forever.** That's the whole network effect.
+`clawid_sdk.verify(...)`. **It's free forever.** That's the whole network effect.
 
 If you want to appear in the [Verified Vendors directory](https://holdtheleash.id) — and
 get the matching audit-chain visibility on your side of every check-in to your domain —
@@ -230,7 +230,7 @@ separate paid surface.
 
 ## Versioning
 
-`clawid` follows [SemVer](https://semver.org/). The `VerifyResult` shape is stable within
+`clawid-sdk` follows [SemVer](https://semver.org/). The `VerifyResult` shape is stable within
 a major; new optional fields are minor; field removals or behavior changes are major.
 `payload` always carries the full decoded JWS for forward-compatibility with new claims.
 

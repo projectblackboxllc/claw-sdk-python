@@ -120,7 +120,7 @@ class Claw:
     when the underlying httpx Client / AsyncClient is reused; the JWKS
     cache is read-mostly so contention is negligible.
 
-    >>> client = clawid.Claw(hub_url="https://api.holdtheleash.id")
+    >>> client = clawid_sdk.Claw(hub_url="https://api.holdtheleash.id")
     >>> result = client.verify(token)
     >>> if result.valid:
     ...     do_work_for(result.agent_id, result.tenant_id)

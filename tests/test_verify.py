@@ -6,8 +6,7 @@ real signing key with a real audit chain. Tests in this file would
 otherwise need a mock hub, and a mock hub is the wrong thing to verify
 the SDK against — we'd be testing our own mock.
 
-To run:
-    cd /Users/awoodsha/Desktop/Claw-SDK-Python
+To run (from the SDK repo root):
     pytest
 
 Requires the sibling claw-hub repo at ../Claw with its venv prepared
@@ -33,8 +32,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
 
 from hub import config, crypto  # noqa: E402 — must follow sys.path mutation
 
-import clawid  # noqa: E402
-from clawid.client import Claw  # noqa: E402
+import clawid_sdk as clawid  # noqa: E402
+from clawid_sdk.client import Claw  # noqa: E402
 
 
 @pytest.fixture
@@ -130,10 +129,10 @@ def test_verify_with_module_helper(monkeypatch, sdk_client):
     We swap that singleton for the in-process one to exercise the same
     code path the README advertises."""
     sdk, store, tenant_id, api_key, fc = sdk_client
-    # Grab the SUBMODULE (clawid.verify) — `from clawid import verify`
+    # Grab the SUBMODULE (clawid.verify) — `from clawid_sdk import verify`
     # would resolve to the function re-exported by __init__.py.
     import importlib
-    verify_mod = importlib.import_module("clawid.verify")
+    verify_mod = importlib.import_module("clawid_sdk.verify")
     monkeypatch.setattr(verify_mod, "_default_client", sdk)
     issued = _issue(fc, api_key)
     result = clawid.verify(issued["token"])

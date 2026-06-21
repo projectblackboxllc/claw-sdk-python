@@ -14,8 +14,8 @@ from typing import Iterator
 
 import pytest
 
-from clawid import verify_receipts, ReceiptsVerifyResult
-from clawid.verify_receipts import RowFailure
+from clawid_sdk import verify_receipts, ReceiptsVerifyResult
+from clawid_sdk.verify_receipts import RowFailure
 
 
 # ── canonical-form helpers (mirror the hub) ────────────────────────────

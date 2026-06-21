@@ -1,4 +1,4 @@
-"""Command-line interface for the clawid SDK.
+"""Command-line interface for the clawid-sdk package.
 
     $ clawid verify-receipts receipts.jsonl
 
