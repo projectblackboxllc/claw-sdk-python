@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "clawid"
-version = "0.1.0"
+version = "0.2.0"
 description = "ClawID — Agent KYC. Verify autonomous AI agent credentials in three lines."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -38,6 +38,9 @@ test = [
   "pytest>=8.0",
   "pytest-asyncio>=0.23",
 ]
+
+[project.scripts]
+clawid = "clawid.__main__:main"
 
 [project.urls]
 Homepage = "https://holdtheleash.id"

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from .client import Claw, VerifyResult, VerifyStatus, ClawError
 from .verify import verify, verify_async
+from .verify_receipts import verify_receipts, ReceiptsVerifyResult, RowFailure
 
 __all__ = [
     "Claw",
@@ -26,6 +27,9 @@ __all__ = [
     "ClawError",
     "verify",
     "verify_async",
+    "verify_receipts",
+    "ReceiptsVerifyResult",
+    "RowFailure",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
