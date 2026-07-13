@@ -14,9 +14,10 @@ Two verification modes:
 
   • offline — JWS signature + expiry only, no revocation check. Zero
     network calls after the JWKS cache is warm. Use when latency
-    matters more than catching a revoke within ~30s. Suitable for very
-    high-throughput verifiers who poll `/v1/verify` out of band on a
-    schedule.
+    matters more than seeing revokes immediately. Revocation is NOT
+    checked in offline mode — you won't see a revoke until you either
+    fall through to online mode for a call, or poll `/v1/verify` for
+    the token's `jti` out of band on a schedule you control.
 
 The SDK NEVER sends a Claw it received to anywhere except the configured
 hub. The hub's signing key is in cloud KMS; ours is a verify-only client.

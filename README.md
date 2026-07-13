@@ -91,9 +91,12 @@ result = await clawid_sdk.verify_async(token)
 result = clawid_sdk.verify(token, mode="offline")
 ```
 
-Use when latency matters more than catching a revoke within ~30s. The signature check
-still uses the cached JWKS, so it's accurate; you just won't see a revoke immediately.
-Suited for very high-throughput verifiers who poll `/v1/verify` on a schedule out of band.
+Use when latency matters more than seeing revokes immediately. The signature check
+still uses the cached JWKS, so signature validity is accurate. Revocation is NOT
+checked in offline mode — you won't see a revoke until you either fall through to
+online mode for a call, or poll `/v1/verify` for the token's `jti` out of band on a
+schedule you control. Suited for very high-throughput verifiers who accept explicit
+revocation lag in exchange for zero network round-trips per verify.
 
 ### Web-framework integration
 
