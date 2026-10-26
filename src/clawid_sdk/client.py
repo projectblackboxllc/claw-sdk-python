@@ -80,7 +80,7 @@ class VerifyResult:
 
     The leash dict has these keys (any may be absent):
       spend_ceiling, allowed_surfaces, active_start_hour, active_end_hour,
-      escalate_over, auto_revoke_off_leash.
+      escalate_over, auto_revoke_off_leash, hold_actions.
     """
     valid: bool
     status: VerifyStatus
@@ -98,6 +98,39 @@ class VerifyResult:
 
     def __bool__(self) -> bool:
         """`if result:` works as a shorthand for `if result.valid:`."""
+        return self.valid
+
+
+EVENT_URI_BASE = "https://holdtheleash.id/events/"
+SECURITY_EVENT_TYP = "secevent+jwt"
+# Tolerated clock skew for a notice's `iat` landing slightly in the future.
+_EVENT_CLOCK_SKEW = 300
+
+
+@dataclass
+class EventResult:
+    """Result of `Claw.verify_event()` — one push notice from the hub.
+
+      valid       True iff the signature checks out against the hub's
+                  published key, it's a ClawID notice, and (if asked)
+                  it's addressed to you and fresh enough.
+      reason      Why it was refused, when valid is False.
+      event_type  "claw.revoked" | "hold.created" | "hold.resolved" | "ping".
+      event_id    Unique per notice. The hub retries, so the same notice
+                  can arrive more than once — dedupe on this.
+      data        The event body (e.g. claw_jti, agent_id, revoked_at).
+      issued_at   When the hub signed it (epoch seconds).
+      audience    The tenant_id it was addressed to.
+    """
+    valid: bool
+    reason: Optional[str] = None
+    event_type: Optional[str] = None
+    event_id: Optional[str] = None
+    data: Optional[dict] = None
+    issued_at: Optional[int] = None
+    audience: Optional[str] = None
+
+    def __bool__(self) -> bool:
         return self.valid
 
 
@@ -188,6 +221,86 @@ class Claw:
         know a key rotation just happened and don't want to wait for the
         TTL to expire."""
         self._jwks_cache = None
+
+    def verify_event(
+        self,
+        body: str | bytes,
+        *,
+        audience: Optional[str] = None,
+        max_age_seconds: Optional[int] = None,
+    ) -> EventResult:
+        """Verify a push notice the hub POSTed to your endpoint.
+
+        `body` is the raw request body (a compact JWS, Content-Type
+        application/secevent+jwt). Pass `audience=<your tenant_id>` to
+        refuse notices addressed to someone else, and `max_age_seconds`
+        to refuse old ones. Never raises on a bad notice — check `.valid`.
+
+            result = claw.verify_event(request.body, audience="tnt_…")
+            if result and result.event_type == "claw.revoked":
+                drop_cached_claw(result.data["claw_jti"])
+
+        The hub retries failed deliveries, so the same notice can arrive
+        twice; dedupe on `result.event_id`."""
+        token = (body.decode("ascii", "replace") if isinstance(body, bytes) else body or "").strip()
+        try:
+            header = jwt.get_unverified_header(token)
+        except jwt.InvalidTokenError:
+            return EventResult(valid=False, reason="malformed notice")
+        if header.get("typ") != SECURITY_EVENT_TYP:
+            return EventResult(valid=False, reason="not a ClawID notice (wrong typ)")
+        kid = header.get("kid")
+        if not kid:
+            return EventResult(valid=False, reason="notice missing 'kid' header")
+
+        jwk = self._jwk_for_kid(kid)
+        if jwk is None:
+            return EventResult(valid=False, reason=f"no key with kid={kid!r} in hub JWKS")
+        try:
+            public_key = OKPAlgorithm.from_jwk(jwk)
+            claims = jwt.decode(
+                token, public_key, algorithms=["EdDSA"], issuer="claw-hub",
+                audience=audience,
+                options={"require": ["iat", "iss", "jti"], "verify_aud": audience is not None},
+            )
+        except jwt.InvalidAudienceError:
+            return EventResult(valid=False, reason="notice is addressed to someone else")
+        except jwt.InvalidTokenError as e:
+            return EventResult(valid=False, reason=f"invalid notice: {e}")
+        except Exception as e:  # noqa: BLE001 — bad key material
+            return EventResult(valid=False, reason=f"could not load hub public key: {e}")
+
+        events = claims.get("events")
+        if not isinstance(events, dict) or len(events) != 1:
+            return EventResult(valid=False, reason="notice must carry exactly one event")
+        uri, data = next(iter(events.items()))
+        if not uri.startswith(EVENT_URI_BASE) or not isinstance(data, dict):
+            return EventResult(valid=False, reason="not a ClawID event")
+
+        now = int(time.time())
+        iat = int(claims["iat"])
+        if iat > now + _EVENT_CLOCK_SKEW:
+            return EventResult(valid=False, reason="notice is dated in the future")
+        if max_age_seconds is not None and now - iat > max_age_seconds:
+            return EventResult(valid=False, reason="notice is too old")
+
+        return EventResult(
+            valid=True,
+            event_type=uri[len(EVENT_URI_BASE):],
+            event_id=claims["jti"],
+            data=data,
+            issued_at=iat,
+            audience=claims.get("aud"),
+        )
+
+    def _jwk_for_kid(self, kid: str) -> Optional[dict]:
+        """Find the hub key for `kid`, refetching once if it isn't cached
+        (handles a key rotation that landed inside the cache TTL)."""
+        jwk = next((k for k in self._fetch_jwks() if k.get("kid") == kid), None)
+        if jwk is None:
+            self._jwks_cache = None
+            jwk = next((k for k in self._fetch_jwks() if k.get("kid") == kid), None)
+        return jwk
 
     # ── internals ─────────────────────────────────────────────────────
 

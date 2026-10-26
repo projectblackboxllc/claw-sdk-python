@@ -126,6 +126,34 @@ def charge(amount: float, agent: clawid.VerifyResult = Depends(claw_required)):
     return {"agent_id": agent.agent_id, "charged": amount}
 ```
 
+## Push notices
+
+The hub can POST to your server when something changes — a Claw used on
+your service was revoked, or (for owners) an agent is waiting for approval.
+Register an endpoint in the dashboard (Settings → Push notices) or with
+`POST /v1/webhooks`. Each notice is a signed
+[Security Event Token](https://www.rfc-editor.org/rfc/rfc8417) (`Content-Type:
+application/secevent+jwt`), checked against the same public key as every Claw:
+
+```python
+import clawid_sdk
+
+result = clawid_sdk.verify_event(request_body, audience="tnt_your_tenant_id")
+if result and result.event_type == "claw.revoked":
+    forget(result.data["claw_jti"])        # stop honoring this Claw now
+```
+
+| `event_type` | Who gets it | `data` |
+|---|---|---|
+| `claw.revoked` | verified vendors the Claw was used on | `claw_jti`, `agent_id`, `tenant_id`, `revoked_at`, `cause` (`owner` / `auto_revoke`) |
+| `hold.created` | the owner | `hold_id`, `agent_label`, `surface`, `action`, `amount`, `expires_at`, `approve_url` |
+| `hold.resolved` | the owner | `hold_id`, `status` (`approved` / `rejected`), `release_expires_at` |
+| `ping` | whoever pressed "Send test" | `endpoint_id`, `sent_at` |
+
+Failed deliveries are retried for about a day and a half, so the same notice
+can arrive twice: dedupe on `result.event_id`. Push is a speed-up, not the
+source of truth — `verify(token)` in online mode still asks the hub live.
+
 ## What the result tells you
 
 `VerifyResult` is a dataclass. `if result:` is shorthand for `if result.valid:`.
@@ -167,6 +195,7 @@ result.leash
 #   "active_end_hour": 17,
 #   "escalate_over": 25.0,
 #   "auto_revoke_off_leash": True,
+#   "hold_actions": ["transfer"],   # always need owner approval
 # }
 ```
 

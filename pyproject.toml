@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "clawid-sdk"
-version = "0.3.1"
+version = "0.4.0"
 description = "ClawID — Agent KYC. Verify autonomous AI agent credentials in three lines."
 readme = "README.md"
 requires-python = ">=3.10"
